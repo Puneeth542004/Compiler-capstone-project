@@ -1,0 +1,76 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX_CODE_SIZE 1024
+
+// Sample recursive code to be transformed
+const char *recursive_code =
+    "#include <stdio.h>\n"
+    "int factorial(int n) {\n"
+    "    if (n <= 1) {\n"
+    "        return 1;\n"
+    "    } else {\n"
+    "        return n * factorial(n - 1);\n"
+    "    }\n"
+    "}\n"
+    "int main() {\n"
+    "    int num = 5;\n"
+    "    int result = factorial(num);\n"
+    "    printf(\"Factorial of %d is %d\\n\", num, result);\n"
+    "    return 0;\n"
+    "}";
+
+// Function to transform the recursive function to an iterative one
+void transform_recursive_to_iterative(const char *recursive_code, char *output_code) {
+    // Split the recursive code into lines
+    char temp_code[MAX_CODE_SIZE];
+    strcpy(temp_code, recursive_code);
+
+    char *lines[100];
+    int line_count = 0;
+    
+    // Tokenize code by lines
+    char *line = strtok(temp_code, "\n");
+    while (line != NULL) {
+        lines[line_count++] = line;
+        line = strtok(NULL, "\n");
+    }
+
+    // Traverse the code and modify it
+    int inside_function = 0;
+    for (int i = 0; i < line_count; i++) {
+        if (strstr(lines[i], "int factorial(") != NULL) {
+            inside_function = 1;
+            strcat(output_code, "int factorial(int n) {\n");
+            strcat(output_code, "    int result = 1;\n");
+            strcat(output_code, "    while (n > 1) {\n");
+            strcat(output_code, "        result *= n;\n");
+            strcat(output_code, "        n--;\n");
+            strcat(output_code, "    }\n");
+            strcat(output_code, "    return result;\n");
+            strcat(output_code, "}\n");
+            // Skip over the rest of the recursive function
+            while (i < line_count && strstr(lines[i], "}") == NULL) {
+                i++;
+            }
+        } else {
+            // Add other lines unchanged
+            strcat(output_code, lines[i]);
+            strcat(output_code, "\n");
+        }
+    }
+}
+
+int main() {
+    char output_code[MAX_CODE_SIZE] = "";
+
+    // Transform the recursive code into an iterative one
+    transform_recursive_to_iterative(recursive_code, output_code);
+
+    // Output the optimized code
+    printf("Original Recursive Code:\n%s\n", recursive_code);
+    printf("\nTransformed Iterative Code:\n%s\n", output_code);
+
+    return 0;
+}
